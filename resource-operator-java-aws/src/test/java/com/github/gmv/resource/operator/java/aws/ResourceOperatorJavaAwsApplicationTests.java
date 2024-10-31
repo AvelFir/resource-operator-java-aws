@@ -1,4 +1,4 @@
-package com.github.gmv.resource_operator_java_aws;
+package com.github.gmv.resource.operator.java.aws;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
