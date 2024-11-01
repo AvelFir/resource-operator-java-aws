@@ -29,7 +29,7 @@ public class SQSController {
     }
 
     @PostMapping("/send/{queue}")
-    public ResponseEntity<SendMessageResult> sendSingle(
+    public SendMessageResult sendSingle(
             @PathVariable final String queue,
             @RequestBody final MessagePayloadRequest payload
     ) throws JsonProcessingException {
@@ -38,9 +38,7 @@ public class SQSController {
         SendMessageRequest request = new SendMessageRequest(queue, messageBody)
                 .withMessageAttributes(convertAttributesToMessageAttributes(payload.getAttributes()));
 
-        SendMessageResult result = sqsClient.sendMessage(request);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        return sqsClient.sendMessage(request);
     }
 
     @PostMapping("/send-batch/{queue}")

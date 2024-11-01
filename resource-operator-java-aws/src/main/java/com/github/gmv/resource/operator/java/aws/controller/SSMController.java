@@ -1,10 +1,7 @@
 package com.github.gmv.resource.operator.java.aws.controller;
 
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
-import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathRequest;
-import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathResult;
-import com.amazonaws.services.simplesystemsmanagement.model.PutParameterRequest;
-import com.amazonaws.services.simplesystemsmanagement.model.PutParameterResult;
+import com.amazonaws.services.simplesystemsmanagement.model.*;
 import com.github.gmv.resource.operator.java.aws.domain.ParameterUpdateRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +24,16 @@ public class SSMController {
                 .withRecursive(true)
                 .withWithDecryption(true);
         return ssmClient.getParametersByPath(request);
+    }
+
+    @GetMapping("/parameters")
+    public GetParameterResult getByName(
+            @RequestParam final String name
+    ) {
+        GetParameterRequest request = new GetParameterRequest()
+                .withName(name)
+                .withWithDecryption(true);
+        return ssmClient.getParameter(request);
     }
 
     @PutMapping("/parameters")
