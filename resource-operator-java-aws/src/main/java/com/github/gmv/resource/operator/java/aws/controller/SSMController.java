@@ -15,7 +15,7 @@ public class SSMController {
         this.ssmClient = client;
     }
 
-    @GetMapping("/parameters")
+    @GetMapping(value = "/parameters", params = "path")
     public GetParametersByPathResult getByPath(
             @RequestParam final String path
     ) {
@@ -26,7 +26,7 @@ public class SSMController {
         return ssmClient.getParametersByPath(request);
     }
 
-    @GetMapping("/parameters")
+    @GetMapping(value = "/parameters", params = "name")
     public GetParameterResult getByName(
             @RequestParam final String name
     ) {
