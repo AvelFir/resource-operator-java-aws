@@ -2,17 +2,15 @@ package com.github.gmv.resource.operator.java.aws.controller;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.*;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.gmv.resource.operator.java.aws.domain.MessagePayloadRequest;
+import org.springframework.core.serializer.support.SerializationFailedException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.IntStream;
 
 import static com.github.gmv.resource.operator.java.aws.utils.MessageUtils.convertAttributesToMessageAttributes;
-import static com.github.gmv.resource.operator.java.aws.utils.MessageUtils.convertHeadersToMessageAttributes;
 
 @RestController
 @RequestMapping("/sqs")
@@ -30,8 +28,8 @@ public class SQSController {
     public SendMessageResult sendSingle(
             @PathVariable final String queue,
             @RequestBody final MessagePayloadRequest payload
-    ) throws JsonProcessingException {
-        String messageBody = objectMapper.writeValueAsString(payload.getBody());
+    ) {
+        String messageBody = serializePayloadBody(payload);
 
         SendMessageRequest request = new SendMessageRequest(queue, messageBody)
                 .withMessageAttributes(convertAttributesToMessageAttributes(payload.getAttributes()));
@@ -42,16 +40,19 @@ public class SQSController {
     @PostMapping("/send-batch/{queue}")
     public SendMessageBatchResult sendBatch(
             @PathVariable final String queue,
-            @RequestBody final List<String> payload,
-            @RequestHeader final Map<String, String> headers
+            @RequestBody final List<MessagePayloadRequest> payloads
     ) {
-        List<SendMessageBatchRequestEntry> entries = IntStream.range(0, payload.size())
-                .mapToObj(i -> new SendMessageBatchRequestEntry()
-                        .withId(String.valueOf(i))
-                        .withMessageBody(payload.get(i))
-                        .withMessageAttributes(convertHeadersToMessageAttributes(headers))
-                )
+        List<SendMessageBatchRequestEntry> entries = IntStream.range(0, payloads.size())
+                .mapToObj(i -> {
+                    MessagePayloadRequest payload = payloads.get(i);
+                    String messageBody = serializePayloadBody(payload);
+                    return new SendMessageBatchRequestEntry()
+                            .withId(String.valueOf(i))
+                            .withMessageBody(messageBody)
+                            .withMessageAttributes(convertAttributesToMessageAttributes(payload.getAttributes()));
+                })
                 .toList();
+
         SendMessageBatchRequest request = new SendMessageBatchRequest(queue, entries);
         return sqsClient.sendMessageBatch(request);
     }
@@ -74,7 +75,7 @@ public class SQSController {
     @GetMapping("/receive/{queue}")
     public ReceiveMessageResult receiveMessages(
             @PathVariable final String queue,
-            @RequestParam(required = false, defaultValue = "10") final Integer maxMessages
+            @RequestParam(required = false, defaultValue = "1") final Integer maxMessages
     ) {
         ReceiveMessageRequest request = new ReceiveMessageRequest(queue)
                 .withMaxNumberOfMessages(maxMessages);
@@ -91,5 +92,11 @@ public class SQSController {
         return sqsClient.getQueueAttributes(request);
     }
 
-
+    private String serializePayloadBody(MessagePayloadRequest payload) {
+        try {
+            return objectMapper.writeValueAsString(payload.getBody());
+        } catch (Exception e) {
+            throw new SerializationFailedException("Falha na serialização do corpo da mensagem", e);
+        }
+    }
 }
