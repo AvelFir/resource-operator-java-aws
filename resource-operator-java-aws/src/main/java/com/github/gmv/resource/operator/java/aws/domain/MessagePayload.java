@@ -3,21 +3,21 @@ package com.github.gmv.resource.operator.java.aws.domain;
 import java.util.Map;
 
 public class MessagePayload {
-    private String body;
+    private Object body;
     private Map<String, String> attributes;
 
     public MessagePayload() { }
 
-    public MessagePayload(String body, Map<String, String> attributes) {
+    public MessagePayload(Object body, Map<String, String> attributes) {
         this.body = body;
         this.attributes = attributes;
     }
 
-    public String getBody() {
+    public Object getBody() {
         return body;
     }
 
-    public void setBody(String body) {
+    public void setBody(Object body) {
         this.body = body;
     }
 
