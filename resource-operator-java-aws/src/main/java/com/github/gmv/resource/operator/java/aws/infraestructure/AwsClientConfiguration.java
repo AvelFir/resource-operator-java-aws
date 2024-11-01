@@ -3,6 +3,8 @@ package com.github.gmv.resource.operator.java.aws.infraestructure;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.retry.PredefinedRetryPolicies;
+import com.amazonaws.services.ecs.AmazonECS;
+import com.amazonaws.services.ecs.AmazonECSClientBuilder;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagement;
 import com.amazonaws.services.simplesystemsmanagement.AWSSimpleSystemsManagementClientBuilder;
 import com.amazonaws.services.sqs.AmazonSQS;
@@ -35,4 +37,16 @@ public class AwsClientConfiguration {
                 .withRegion(Regions.SA_EAST_1)
                 .build();
     }
+
+    @Bean
+    @Primary
+    public AmazonECS amazonEcs() {
+        return AmazonECSClientBuilder
+                .standard()
+                .withClientConfiguration(new ClientConfiguration()
+                        .withRetryPolicy(PredefinedRetryPolicies.getDefaultRetryPolicy()))
+                .withRegion(Regions.SA_EAST_1)
+                .build();
+    }
+
 }
