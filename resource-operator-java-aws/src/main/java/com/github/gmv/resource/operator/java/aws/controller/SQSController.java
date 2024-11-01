@@ -5,8 +5,6 @@ import com.amazonaws.services.sqs.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.gmv.resource.operator.java.aws.domain.MessagePayloadRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -81,6 +79,15 @@ public class SQSController {
         ReceiveMessageRequest request = new ReceiveMessageRequest(queue)
                 .withMaxNumberOfMessages(maxMessages);
         return sqsClient.receiveMessage(request);
+    }
+
+    @GetMapping("/info/{queue}")
+    public GetQueueAttributesResult get(
+            @PathVariable final String queue
+    ) {
+        GetQueueAttributesRequest request = new GetQueueAttributesRequest(queue)
+                .withQueueUrl(queue);
+        return sqsClient.getQueueAttributes(request);
     }
 
 
