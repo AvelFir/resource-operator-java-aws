@@ -4,7 +4,7 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.gmv.resource.operator.java.aws.domain.MessagePayload;
+import com.github.gmv.resource.operator.java.aws.domain.MessagePayloadRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,7 +31,7 @@ public class SQSController {
     @PostMapping("/send/{queue}")
     public ResponseEntity<SendMessageResult> sendSingle(
             @PathVariable final String queue,
-            @RequestBody final MessagePayload payload
+            @RequestBody final MessagePayloadRequest payload
     ) throws JsonProcessingException {
         String messageBody = objectMapper.writeValueAsString(payload.getBody());
 

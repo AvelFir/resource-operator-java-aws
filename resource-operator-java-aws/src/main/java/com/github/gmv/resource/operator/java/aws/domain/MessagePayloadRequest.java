@@ -2,13 +2,13 @@ package com.github.gmv.resource.operator.java.aws.domain;
 
 import java.util.Map;
 
-public class MessagePayload {
+public class MessagePayloadRequest {
     private Object body;
     private Map<String, String> attributes;
 
-    public MessagePayload() { }
+    public MessagePayloadRequest() { }
 
-    public MessagePayload(Object body, Map<String, String> attributes) {
+    public MessagePayloadRequest(Object body, Map<String, String> attributes) {
         this.body = body;
         this.attributes = attributes;
     }

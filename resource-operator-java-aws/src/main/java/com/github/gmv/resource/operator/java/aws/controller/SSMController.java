@@ -5,6 +5,7 @@ import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathR
 import com.amazonaws.services.simplesystemsmanagement.model.GetParametersByPathResult;
 import com.amazonaws.services.simplesystemsmanagement.model.PutParameterRequest;
 import com.amazonaws.services.simplesystemsmanagement.model.PutParameterResult;
+import com.github.gmv.resource.operator.java.aws.domain.ParameterUpdateRequest;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -30,12 +31,11 @@ public class SSMController {
 
     @PutMapping("/parameters")
     public PutParameterResult update(
-            @RequestParam final String name,
-            @RequestParam final String value
+            @RequestBody ParameterUpdateRequest updateRequest
     ) {
         PutParameterRequest request = new PutParameterRequest()
-                .withName(name)
-                .withValue(value)
+                .withName(updateRequest.getName())
+                .withValue(updateRequest.getValue())
                 .withOverwrite(true);
         return ssmClient.putParameter(request);
     }
