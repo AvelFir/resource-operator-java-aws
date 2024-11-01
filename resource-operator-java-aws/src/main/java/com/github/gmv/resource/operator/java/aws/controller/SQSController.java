@@ -62,6 +62,7 @@ public class SQSController {
         return sqsClient.listQueues(request);
     }
 
+    //TODO: Estudar comportamento do metodo
     @GetMapping("/receive/{queue}")
     public ReceiveMessageResult receiveMessages(
             @PathVariable final String queue,
