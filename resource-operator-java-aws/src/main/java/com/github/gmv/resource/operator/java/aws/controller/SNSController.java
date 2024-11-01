@@ -26,7 +26,7 @@ public class SNSController {
         this.objectMapper = objectMapper;
     }
 
-    @PostMapping("/publish/{topic}")
+    @PostMapping("/publish/{topicName}")
     public PublishResult sendSingle(
             @PathVariable final String topicName,
             @RequestBody final MessagePayloadRequest payload
@@ -35,7 +35,6 @@ public class SNSController {
         String topicArn = null;
         String nextToken = null;
 
-        // Laço para buscar em todas as páginas de tópicos
         do {
             ListTopicsRequest listTopicsRequest = new ListTopicsRequest();
             if (nextToken != null) {
@@ -43,7 +42,6 @@ public class SNSController {
             }
 
             ListTopicsResult listTopicsResult = snsClient.listTopics(listTopicsRequest);
-            // Procura o tópico pelo nome
             topicArn = listTopicsResult.getTopics().stream()
                     .filter(topic -> topic.getTopicArn().endsWith(":" + topicName))
                     .map(Topic::getTopicArn)
@@ -53,7 +51,6 @@ public class SNSController {
             nextToken = listTopicsResult.getNextToken();
         } while (nextToken != null && topicArn == null);
 
-        // Verifica se o tópico foi encontrado
         if (topicArn == null) {
             throw new RuntimeException("Tópico não encontrado");
         }
@@ -62,11 +59,10 @@ public class SNSController {
                 .withTopicArn(topicArn)
                 .withMessage(objectMapper.writeValueAsString(payload.getBody()));
 
-        // Adiciona atributos à mensagem se existirem
         if (payload.getAttributes() != null && !payload.getAttributes().isEmpty()) {
             for (Map.Entry<String, String> entry : payload.getAttributes().entrySet()) {
                 publishRequest.addMessageAttributesEntry(entry.getKey(),
-                        new MessageAttributeValue().withStringValue(entry.getValue()));
+                        new MessageAttributeValue().withStringValue(entry.getValue()).withDataType("String"));
             }
         }
 
