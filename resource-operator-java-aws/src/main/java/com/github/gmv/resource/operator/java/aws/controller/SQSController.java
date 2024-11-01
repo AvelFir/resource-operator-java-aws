@@ -2,6 +2,8 @@ package com.github.gmv.resource.operator.java.aws.controller;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.gmv.resource.operator.java.aws.domain.MessagePayload;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,18 +21,23 @@ import static com.github.gmv.resource.operator.java.aws.utils.MessageUtils.conve
 public class SQSController {
 
     private final AmazonSQS sqsClient;
+    private final ObjectMapper objectMapper;
 
-    public SQSController(final AmazonSQS amazonSQSClient) {
+    public SQSController(final AmazonSQS amazonSQSClient, ObjectMapper objectMapper) {
         this.sqsClient = amazonSQSClient;
+        this.objectMapper = objectMapper;
     }
 
     @PostMapping("/send/{queue}")
     public ResponseEntity<SendMessageResult> sendSingle(
             @PathVariable final String queue,
             @RequestBody final MessagePayload payload
-    ) {
-        SendMessageRequest request = new SendMessageRequest(queue, payload.getBody())
+    ) throws JsonProcessingException {
+        String messageBody = objectMapper.writeValueAsString(payload.getBody());
+
+        SendMessageRequest request = new SendMessageRequest(queue, messageBody)
                 .withMessageAttributes(convertAttributesToMessageAttributes(payload.getAttributes()));
+
         SendMessageResult result = sqsClient.sendMessage(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
