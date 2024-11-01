@@ -86,7 +86,8 @@ public class SQSController {
             @PathVariable final String queue
     ) {
         GetQueueAttributesRequest request = new GetQueueAttributesRequest(queue)
-                .withQueueUrl(queue);
+                .withQueueUrl(queue)
+                .withAttributeNames(QueueAttributeName.All);
         return sqsClient.getQueueAttributes(request);
     }
 

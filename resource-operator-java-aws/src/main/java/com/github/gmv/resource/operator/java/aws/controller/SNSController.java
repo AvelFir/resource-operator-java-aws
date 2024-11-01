@@ -4,6 +4,9 @@ import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
+import com.amazonaws.services.sns.model.ListTopicsRequest;
+import com.amazonaws.services.sns.model.ListTopicsResult;
+import com.amazonaws.services.sns.model.Topic;  // Importando a classe correta
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.gmv.resource.operator.java.aws.domain.MessagePayloadRequest;
@@ -29,16 +32,37 @@ public class SNSController {
             @RequestBody final MessagePayloadRequest payload
     ) throws JsonProcessingException {
 
-        String topicArn = snsClient.listTopics().getTopics().stream()
-                .filter(topic -> topic.getTopicArn().endsWith(":" + topicName))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Tópico não encontrado"))
-                .getTopicArn();
+        String topicArn = null;
+        String nextToken = null;
+
+        // Laço para buscar em todas as páginas de tópicos
+        do {
+            ListTopicsRequest listTopicsRequest = new ListTopicsRequest();
+            if (nextToken != null) {
+                listTopicsRequest.setNextToken(nextToken);
+            }
+
+            ListTopicsResult listTopicsResult = snsClient.listTopics(listTopicsRequest);
+            // Procura o tópico pelo nome
+            topicArn = listTopicsResult.getTopics().stream()
+                    .filter(topic -> topic.getTopicArn().endsWith(":" + topicName))
+                    .map(Topic::getTopicArn)
+                    .findFirst()
+                    .orElse(null);
+
+            nextToken = listTopicsResult.getNextToken();
+        } while (nextToken != null && topicArn == null);
+
+        // Verifica se o tópico foi encontrado
+        if (topicArn == null) {
+            throw new RuntimeException("Tópico não encontrado");
+        }
 
         PublishRequest publishRequest = new PublishRequest()
                 .withTopicArn(topicArn)
                 .withMessage(objectMapper.writeValueAsString(payload.getBody()));
 
+        // Adiciona atributos à mensagem se existirem
         if (payload.getAttributes() != null && !payload.getAttributes().isEmpty()) {
             for (Map.Entry<String, String> entry : payload.getAttributes().entrySet()) {
                 publishRequest.addMessageAttributesEntry(entry.getKey(),
@@ -48,6 +72,4 @@ public class SNSController {
 
         return snsClient.publish(publishRequest);
     }
-
-
 }

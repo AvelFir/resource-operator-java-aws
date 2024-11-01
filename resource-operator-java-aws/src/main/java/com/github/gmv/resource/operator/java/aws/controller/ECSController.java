@@ -11,6 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/ecs")
+//TODO estudar implementaçao TASK vs Service
 public class ECSController {
 
     private final AmazonECS ecsClient;
