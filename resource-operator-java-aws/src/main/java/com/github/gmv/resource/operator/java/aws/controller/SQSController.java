@@ -20,20 +20,20 @@ public class SQSController {
         this.sqsClient = amazonSQSClient;
     }
 
-    @PostMapping("/send")
+    @PostMapping("/send/{queue}")
     public SendMessageResult sendSingle(
-            @RequestParam final String queueUrl,
+            @PathVariable final String queue,
             @RequestBody final String payload,
             @RequestHeader final Map<String, String> headers
     ) {
-        SendMessageRequest request = new SendMessageRequest(queueUrl, payload)
+        SendMessageRequest request = new SendMessageRequest(queue, payload)
                 .withMessageAttributes(convertHeadersToMessageAttributes(headers));
         return sqsClient.sendMessage(request);
     }
 
-    @PostMapping("/send-batch")
+    @PostMapping("/send-batch/{queue}")
     public SendMessageBatchResult sendBatch(
-            @RequestParam final String queueUrl,
+            @PathVariable final String queue,
             @RequestBody final List<String> payload,
             @RequestHeader final Map<String, String> headers
     ) {
@@ -44,31 +44,30 @@ public class SQSController {
                         .withMessageAttributes(convertHeadersToMessageAttributes(headers))
                 )
                 .toList();
-        SendMessageBatchRequest request = new SendMessageBatchRequest(queueUrl, entries);
+        SendMessageBatchRequest request = new SendMessageBatchRequest(queue, entries);
         return sqsClient.sendMessageBatch(request);
     }
 
-    @DeleteMapping("/purge")
-    public PurgeQueueResult purge(@RequestParam final String queueUrl) {
-        PurgeQueueRequest request = new PurgeQueueRequest(queueUrl);
+    @PostMapping("/purge/{queue}")
+    public PurgeQueueResult purge(@PathVariable final String queue) {
+        PurgeQueueRequest request = new PurgeQueueRequest(queue);
         return sqsClient.purgeQueue(request);
     }
 
     @GetMapping("/all")
     public ListQueuesResult listAll(
-            @RequestParam(required = false) final String prefix,
-            @RequestHeader final Map<String, String> headers
+            @RequestParam(required = false) final String prefix
     ) {
         ListQueuesRequest request = new ListQueuesRequest(prefix);
         return sqsClient.listQueues(request);
     }
 
-    @GetMapping("/receive")
+    @GetMapping("/receive/{queue}")
     public ReceiveMessageResult receiveMessages(
-            @RequestParam final String queueUrl,
+            @PathVariable final String queue,
             @RequestParam(required = false, defaultValue = "10") final Integer maxMessages
     ) {
-        ReceiveMessageRequest request = new ReceiveMessageRequest(queueUrl)
+        ReceiveMessageRequest request = new ReceiveMessageRequest(queue)
                 .withMaxNumberOfMessages(maxMessages);
         return sqsClient.receiveMessage(request);
     }
