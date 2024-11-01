@@ -23,9 +23,8 @@ public class SqsConsumer {
 
         try {
             while (true) {
-                // Configura a requisição para receber mensagens
                 ReceiveMessageRequest receiveRequest = new ReceiveMessageRequest(QUEUE_URL)
-                        .withMaxNumberOfMessages(10) // Limite de mensagens por polling
+                        .withMaxNumberOfMessages(10)
                         .withWaitTimeSeconds(WAIT_TIME_SECONDS)
                         .withMessageAttributeNames("All");
 
