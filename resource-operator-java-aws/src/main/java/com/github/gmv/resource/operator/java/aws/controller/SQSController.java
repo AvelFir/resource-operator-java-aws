@@ -2,13 +2,17 @@ package com.github.gmv.resource.operator.java.aws.controller;
 
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.*;
+import com.github.gmv.resource.operator.java.aws.domain.MessagePayload;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import static com.github.gmv.resource.operator.java.aws.utils.HeaderUtils.convertHeadersToMessageAttributes;
+import static com.github.gmv.resource.operator.java.aws.utils.MessageUtils.convertAttributesToMessageAttributes;
+import static com.github.gmv.resource.operator.java.aws.utils.MessageUtils.convertHeadersToMessageAttributes;
 
 @RestController
 @RequestMapping("/sqs")
@@ -21,14 +25,15 @@ public class SQSController {
     }
 
     @PostMapping("/send/{queue}")
-    public SendMessageResult sendSingle(
+    public ResponseEntity<SendMessageResult> sendSingle(
             @PathVariable final String queue,
-            @RequestBody final String payload,
-            @RequestHeader final Map<String, String> headers
+            @RequestBody final MessagePayload payload
     ) {
-        SendMessageRequest request = new SendMessageRequest(queue, payload)
-                .withMessageAttributes(convertHeadersToMessageAttributes(headers));
-        return sqsClient.sendMessage(request);
+        SendMessageRequest request = new SendMessageRequest(queue, payload.getBody())
+                .withMessageAttributes(convertAttributesToMessageAttributes(payload.getAttributes()));
+        SendMessageResult result = sqsClient.sendMessage(request);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
     @PostMapping("/send-batch/{queue}")
